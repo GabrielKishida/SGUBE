@@ -77,8 +77,11 @@ class Interface:
 
         elif(janela == 'Livros'):
             layout = [
-            [sg.Text('Consulte a disponibilidade de Livros: ', font='Arial 18', text_color='white')],
-            [sg.Input(size=(60,20), key='selectL'), sg.Button('Buscar', size=(22,1))],
+            [sg.Text('Consulte a disponibilidade de Livros ', font='Arial 18', text_color='white')],
+            [sg.Text('Consulte por um Nome: ', font='Arial 18', text_color='white')],
+            [sg.Input(size=(60,20), key='selectNomeLivro')],
+            [sg.Text('Consulte pelo Nome do(a) Autor(a): ', font='Arial 18', text_color='white')],
+            [sg.Input(size=(60,20), key='selectAutor'), sg.Button('Buscar', size=(22,1))],
             [sg.Output(size=(100,20))], 
             [sg.Button('Sair', size=(10,2))]
             ]
@@ -139,19 +142,46 @@ class Interface:
                 window2 = self.make_win('Livros')
                 while True:
                     self.buttonL, self.valuesL = window2.Read()
-                    if self.buttonL == 'Buscar Aluno':
-                        selectL = self.valuesL['selectL']
+                    if self.buttonL == 'Buscar':
+                        selectLivro = self.valuesL['selectNomeLivro']
+                        selectAutor = self.valuesL['selectAutor']
                         try:
-                            consulta_sql = "select * from Livro where Livro.nome LIKE '%" + selectL + "%'"
-                            self.cursor.execute(consulta_sql)
-                            linhas = self.cursor.fetchall()
+                            if(selectLivro != '' and selectAutor == ''):
+                                consulta_sql = "select * from tipoLivro, Livro where Livro.tipoLivro_idtipoLivro = tipoLivro.idtipoLivro AND tipoLivro.nome LIKE '%" + selectLivro + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
 
-                            for linha in linhas:
-                                print("NUSP:", linha[0])
-                                print("Área:", linha[1])
-                                print("Ano de Ingresso:", linha[2])
-                                print("Nome:", linha[3])
-                                print("E-mail:", linha[4], "\n")
+                                for linha in linhas:
+                                    print("ID:", linha[0])
+                                    print("Nome:", linha[1])
+                                    print("Autor:", linha[2])
+                                    print("Edição:", linha[3])
+                                    print("Ano de Lançamento:", linha[4], "\n")
+
+                            elif(selectLivro == '' and selectAutor != ''):
+                                consulta_sql = "select * from tipoLivro, Livro where Livro.tipoLivro_idtipoLivro = tipoLivro.idtipoLivro AND tipoLivro.autor LIKE '%" + selectAutor + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
+
+                                for linha in linhas:
+                                    print("ID:", linha[0])
+                                    print("Nome:", linha[1])
+                                    print("Autor:", linha[2])
+                                    print("Edição:", linha[3])
+                                    print("Ano de Lançamento:", linha[4], "\n")
+
+                            elif(selectLivro != '' and selectAutor != ''):
+                                consulta_sql = "select * from tipoLivro, Livro where Livro.tipoLivro_idtipoLivro = tipoLivro.idtipoLivro AND tipoLivro.nome LIKE '%" + selectLivro + "%'" + " AND tipoLivro.autor LIKE '%" + selectAutor + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
+
+                                for linha in linhas:
+                                    print("ID:", linha[0])
+                                    print("Nome:", linha[1])
+                                    print("Autor:", linha[2])
+                                    print("Edição:", linha[3])
+                                    print("Ano de Lançamento:", linha[4], "\n")
+
                         except Error as e:
                             print("Erro ao acessar tabela MySQL", e)
 
@@ -335,10 +365,11 @@ database = [pd.read_csv(os.path.join(__location__, "alunos.csv")),
             pd.read_csv(os.path.join(__location__, "Laboratorio.csv")),
             pd.read_csv(os.path.join(__location__, "Funcionario.csv")),
             pd.read_csv(os.path.join(__location__, "tipoEquipamento.csv")),
-            pd.read_csv(os.path.join(__location__, "Equipamento.csv"))
+            pd.read_csv(os.path.join(__location__, "Equipamento.csv")),
+            pd.read_csv(os.path.join(__location__, "tipoLivro.csv"))
 ]
 
-entity = ["Aluno", "Professor", "Trabalha_Em", "Responsavel_Por", "Livro", "Laboratorio", "Funcionario", "tipoEquipamento", "Equipamento"]
+entity = ["Aluno", "Professor", "Trabalha_Em", "Responsavel_Por", "Livro", "Laboratorio", "Funcionario", "tipoEquipamento", "Equipamento", "tipoLivro"]
 
 tela = Interface()
 tela.connect()

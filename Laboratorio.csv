@@ -1,0 +1,11 @@
+idLaboratorio,nome,endereco,departamento,telefone
+1,Elétrica 1,"rua Ângelo Romano, 185",Elétrica,1130915221
+2,Elétrica 2,"rua itu,1",Elétrica,1130915223
+3,Civil 1,"rua Guaíbba, 999",Civil,1130915550
+4,Civil 2,"rua Pedro Colino, 271",Civil,1130915534
+5,Mecânica 1,"rua Cruz e Souza, 3100",Mecânica,1130915577
+6,Mecânica 2,"rua Roberto Michellin, 95",Mecânica,1130916030
+7,Produção 1,"rua Genoveva Onofre, 851",Produção,1130915527
+8,Produção 2,"rua dos Pinheiros,20",Produção,1130911760
+9,Minas 1,"rua Ceninha, 595",Minas,1130915751
+10,Minas 2,"rua do Jabuti, 9995",Minas,1130911868

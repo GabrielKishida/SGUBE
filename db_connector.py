@@ -5,13 +5,43 @@ import pandas as pd
 import os
 import PySimpleGUI as sg
 
+def geraInsert(dataFrame, entidade):
+    insertions = []
+    for c in range(len(dataFrame.index)):
+        insertion = "INSERT INTO " + entidade + " ("
+        for i, atributo in enumerate(dataFrame.columns):
+            size = len(dataFrame.columns)
+            if(i == size-1):
+                insertion += str(atributo)
+            else:
+                insertion += str(atributo) + ","
+        
+        insertion += ") VALUES ("
+
+        for j, atributo in enumerate(dataFrame.loc[c]):
+            size = len(dataFrame.columns)
+            if(j == size-1):
+                insertion += "'" + str(atributo) + "'" 
+            else:
+                insertion += "'" + str(atributo) + "'" + ","
+        
+        insertion += ")"
+        insertions.append(insertion)
+
+    return insertions
+
+__location__ = os.path.realpath(
+    os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
 class Interface:
     def __init__(self):
         self.layout = [
-            [sg.Text('SGUBE' + '\n' 'O seu amigo na Poli!', font='Avenir 24', text_color='white')],
-            [sg.Button('Professores', size=(12,1), font='Avenir'), sg.Button('Equipamentos', size=(12,1), font='Avenir')], 
-            [sg.Output(size=(30,20)), sg.Button('Consulta', size=(10,2))], 
-            [sg.Button('Sair', size=(10,2))]
+            [sg.Image(os.path.join(__location__, "sgube.png"), key='key1', size=(220, 190)), sg.Text('                 SGUBE' + '\n' '     O seu amigo na Poli!', font='Avenir 26', text_color='white')],
+            [sg.Button('Equipamentos', size=(22,1), font='Avenir', button_color=('white', 'gray')), 
+             sg.Button('Livros', size=(22,1), font='Avenir', button_color=('white', 'gray')), 
+             sg.Button('Pessoas', size=(22,1), font='Avenir', button_color=('white', 'gray'))], 
+            [sg.Output(size=(100,20))], 
+            [sg.Button('Sair', size=(12,1), button_color=('white', 'gray'), font='Avenir 14', border_width=1)]
         ]
 
     def commit(self):
@@ -21,27 +51,10 @@ class Interface:
         self.con = mysql.connector.connect(host='localhost',database='mydb',user='fabicom',password='mac0321')
         self.cursor = self.con.cursor()
 
-    def insert(self):
-        insert_aluno = ["INSERT INTO Aluno (nusp, area, ano_ingresso, nome, email) VALUES ('12345678','Computação','2019','Michael Jackson','mjj@usp.br')",
-        "INSERT INTO Aluno (nusp, area, ano_ingresso, nome, email) VALUES ('12478955','Mecânica','2016','Arthur Gabriel','arthurgabriel@usp.br')",
-        "INSERT INTO Aluno (nusp, area, ano_ingresso, nome, email) VALUES ('45612844','Mecânica','2017','Davi Luiz Arlindo','davi.arlindo@usp.br')",
-        "INSERT INTO Aluno (nusp, area, ano_ingresso, nome, email) VALUES ('58475687','Mecânica','2019','Vitor Hugo Seichas','vitorhugoseichas@usp.br')",
-        "INSERT INTO Aluno (nusp, area, ano_ingresso, nome, email) VALUES ('65878445','Computação','2020','João Pedro Henrique','joaopedrohenrique@usp.br')",
-        "INSERT INTO Aluno (nusp, area, ano_ingresso, nome, email) VALUES ('92054548','Computação','2020','João Pedro Cardoso','joaopedrocardoso@usp.br')",
-        "INSERT INTO Aluno (nusp, area, ano_ingresso, nome, email) VALUES ('5641547','Elétrica','2018','João Pedro Zucci','joaozucci@usp.br')",
-        "INSERT INTO Aluno (nusp, area, ano_ingresso, nome, email) VALUES ('23645878','Elétrica','2018','Flávio Ciparrone','alunopreparado@usp.br')",
-        "INSERT INTO Aluno (nusp, area, ano_ingresso, nome, email) VALUES ('1064587','Elétrica','2019','Luiz Otávio de Souza','luizotavio.souza@usp.br')",
-        "INSERT INTO Aluno (nusp, area, ano_ingresso, nome, email) VALUES ('77845848','Produção','2019','Pedro Henrique Juissen','pedrojuissen@usp.br')",
-        "INSERT INTO Aluno (nusp, area, ano_ingresso, nome, email) VALUES ('65848788','Produção','2018','João Guilherme Negueba','joaonegueba@usp.br')",
-        "INSERT INTO Aluno (nusp, area, ano_ingresso, nome, email) VALUES ('68549874','Produção','2020','Ana Luiza Maracujá','ana.maracuja@usp.br')",
-        "INSERT INTO Aluno (nusp, area, ano_ingresso, nome, email) VALUES ('54517084','Civil','2021','Maria Helena Nogueira Torres','marianogueira.torres@usp.br')",
-        "INSERT INTO Aluno (nusp, area, ano_ingresso, nome, email) VALUES ('65874448','Civil','2018','Benedita Alvarenga de Luzia','benedita.luzia@usp.br')"]
-        for insert in insert_aluno:
+    def insert(self, insertion):
+        for insert in insertion:
             insercao_sql = insert
             self.cursor.execute(insercao_sql)
-        insercao_sql = "INSERT INTO Professor (nusp, sala, cargo, departamento, nome, email, telefone) VALUES ('9876543','C250', 'professor titular','PCS', 'Tobias', 'tobias@usp.br', '41989898998')"
-        self.cursor.execute(insercao_sql)
-
 
     def endConnection(self):
         if (self.con.is_connected()):
@@ -50,92 +63,89 @@ class Interface:
             print("Conexão ao MySQL encerrada")
  
     def make_win1(self):
-        return sg.Window('SGUBE', self.layout, location=(800,600), finalize=True)
+        return sg.Window('SGUBE', self.layout, location=(800,600),size=(600, 530), finalize=True)
 
     def make_win(self, janela):
-        if(janela == 'Professores'):
+        if(janela == 'Equipamentos'):
             layout = [
-            [sg.Text('Consulte a disponibilidade de livros: ', font='Arial 16', text_color='white')],
-            [sg.Input(size=(30,8), key='selectL'), sg.Button('Buscar', size=(10,2))],
-            [sg.Output(size=(30,20))], 
+            [sg.Text('Consulte a disponibilidade de Equipamentos: ', font='Arial 18', text_color='white')],
+            [sg.Input(size=(50,20), key='selectE'), sg.Button('Buscar', size=(22,1))],
+            [sg.Output(size=(100,20))], 
             [sg.Button('Sair', size=(10,2))]
             ]
-            return sg.Window('Consulta', layout, location=(800,600), finalize=True)
+            return sg.Window('Equipamento', layout, location=(800,600), finalize=True)
 
-        elif(janela == 'Equipamentos'):
+        elif(janela == 'Livros'):
             layout = [
-            [sg.Text('Consulte a disponibilidade de equipamentos: ', font='Arial 16', text_color='white')],
-            [sg.Input(size=(30,10), key='selectL')],
-            [sg.Button('Buscar', size=(10,2)), sg.Button('Buscar Aluno', size=(10,2))],
-            [sg.Output(size=(30,20))], 
+            [sg.Text('Consulte a disponibilidade de Livros: ', font='Arial 18', text_color='white')],
+            [sg.Input(size=(60,20), key='selectL'), sg.Button('Buscar', size=(22,1))],
+            [sg.Output(size=(100,20))], 
             [sg.Button('Sair', size=(10,2))]
             ]
-            return sg.Window('Second Window', layout, location=(800,600), finalize=True)
+            return sg.Window('Livros', layout, location=(800,600), finalize=True)
+
+        elif(janela == 'Pessoas'):
+            layout = [
+            [sg.Text('Consulte por um NUSP: ', font='Arial 18', text_color='white')],
+            [sg.Input(size=(60,20), key='selectNusp')],
+            [sg.Text('Consulte pelo Nome: ', font='Arial 18', text_color='white')],
+            [sg.Input(size=(60,20), key='selectNome')],
+            [sg.Button('Alunos', size=(22,1), font='Avenir', button_color=('white', 'gray')), 
+             sg.Button('Professores', size=(22,1), font='Avenir', button_color=('white', 'gray')), 
+             sg.Button('Funcionários', size=(22,1), font='Avenir', button_color=('white', 'gray'))], 
+            [sg.Output(size=(100,20))],
+            [sg.Button('Sair', size=(10,2))]
+            ]
+            return sg.Window('Pessoas', layout, location=(800,600), finalize=True)
 
     def iniciar(self):
-        window1, window2 = self.make_win1(), None        # start off with 1 window open
+        window1, window2 = self.make_win1(), None        
         while True:     
             window, self.button, self.values = sg.read_all_windows()
             if self.button == sg.WIN_CLOSED or self.button == 'Sair':
                 window.close()
-                if window == window2:       # if closing win 2, mark as closed
+                if window == window2:       
                     window2 = None
-                elif window == window1:     # if closing win 1, exit program
+                elif window == window1:  
                     if (self.con.is_connected()):
                         self.con.close()
                         self.cursor.close()
-                        #print("Conexão ao MySQL encerrada")
                     break
-
-            elif(self.button == 'Consulta'):
-                try:
-                    consulta_sql = "select * from Aluno where Aluno.nome LIKE '%Ciparrone'"
-                    self.cursor.execute(consulta_sql)
-                    linhas = self.cursor.fetchall()
-
-                    for linha in linhas:
-                        print("NUSP:", linha[0])
-                        print("Área:", linha[1])
-                        print("Ano de Ingresso:", linha[2])
-                        print("Nome:", linha[3])
-                        print("E-mail:", linha[4], "\n")
-                except Error as e:
-                    print("Erro ao acessar tabela MySQL", e)
         
-            elif self.button == 'Professores' and not window2:
-                window2 = self.make_win('Professores')
+            elif self.button == 'Equipamentos' and not window2:
+                window2 = self.make_win('Equipamentos')
                 while True:
-                    self.buttonL, self.valuesL = window2.Read()
-                    if self.buttonL == 'Buscar':
+                    self.buttonE, self.valuesE = window2.Read()
+                    if self.buttonE == 'Buscar':
+                        selectE = self.valuesE['selectE']
                         try:
-                            consulta_sql = "select * from Aluno"
+                            consulta_sql = "select * from tipoEquipamento, Equipamento where tipoEquipamento.idtipoEquipLab = Equipamento.tipoEquipamento_idtipoEquipLab AND " + "tipoEquipamento.nome LIKE '%" + selectE + "%'"
                             self.cursor.execute(consulta_sql)
                             linhas = self.cursor.fetchall()
-                            #print(linhas)
+
                             for linha in linhas:
-                                print("NUSP:", linha[0])
-                                print("Área:", linha[1])
-                                print("Ano de Ingresso:", linha[2])
-                                print("Nome:", linha[3])
-                                print("E-mail:", linha[4], "\n")
+                                print("ID:", linha[0])
+                                print("Nome:", linha[1])
+                                print("Modelo:", linha[2])
+                                print("Tipo:", linha[3], "\n")
                         except Error as e:
                             print("Erro ao acessar tabela MySQL", e)
-                    elif self.buttonL == sg.WIN_CLOSED or self.buttonL == 'Sair':
+                    elif self.buttonE == sg.WIN_CLOSED or self.buttonE == 'Sair':
                         break
                 window2.close()
                 window2 = None
 
-            elif self.button == 'Equipamentos' and not window2:
-                window2 = self.make_win('Equipamentos')
+            elif self.button == 'Livros' and not window2:
+                window2 = self.make_win('Livros')
                 while True:
                     self.buttonL, self.valuesL = window2.Read()
                     if self.buttonL == 'Buscar Aluno':
                         selectL = self.valuesL['selectL']
                         try:
-                            consulta_sql = "select * from Aluno where Aluno.nome LIKE '%" + selectL + "%'"
+                            consulta_sql = "select * from Livro where Livro.nome LIKE '%" + selectL + "%'"
                             self.cursor.execute(consulta_sql)
                             linhas = self.cursor.fetchall()
-                            #print(linhas)
+
                             for linha in linhas:
                                 print("NUSP:", linha[0])
                                 print("Área:", linha[1])
@@ -150,7 +160,7 @@ class Interface:
                             consulta_sql = "select * from Aluno"
                             self.cursor.execute(consulta_sql)
                             linhas = self.cursor.fetchall()
-                            #print(linhas)
+ 
                             for linha in linhas:
                                 print("NUSP:", linha[0])
                                 print("Área:", linha[1])
@@ -163,89 +173,177 @@ class Interface:
                         break
                 window2.close()
                 window2 = None
+            
+            elif self.button == 'Pessoas' and not window2:
+                window2 = self.make_win('Pessoas')
+                while True:
+                    self.buttonP, self.valuesP = window2.Read()
+                    if self.buttonP == 'Alunos':
+                        selectNusp = self.valuesP['selectNusp']
+                        selectNome = self.valuesP['selectNome']
+                        try:
+
+                            if(selectNusp != '' and selectNome == ''):
+                                consulta_sql = "select * from Aluno where Aluno.nusp LIKE '%" + selectNusp + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
+
+                                for linha in linhas:
+                                    print("NUSP:", linha[0])
+                                    print("Área:", linha[1])
+                                    print("Ano de Ingresso:", linha[2])
+                                    print("Nome:", linha[3])
+                                    print("E-mail:", linha[4], "\n")
+
+                            elif(selectNusp == '' and selectNome != ''):
+                                consulta_sql = "select * from Aluno where Aluno.nome LIKE '%" + selectNome + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
+
+                                for linha in linhas:
+                                    print("NUSP:", linha[0])
+                                    print("Área:", linha[1])
+                                    print("Ano de Ingresso:", linha[2])
+                                    print("Nome:", linha[3])
+                                    print("E-mail:", linha[4], "\n")
+
+                            elif(selectNusp != '' and selectNome != ''):
+                                consulta_sql = "select * from Aluno where Aluno.nome LIKE '%" + selectNome + "%'" + "AND Aluno.nusp LIKE '%" + selectNusp + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
+
+                                for linha in linhas:
+                                    print("NUSP:", linha[0])
+                                    print("Área:", linha[1])
+                                    print("Ano de Ingresso:", linha[2])
+                                    print("Nome:", linha[3])
+                                    print("E-mail:", linha[4], "\n")
+
+
+                        except Error as e:
+                            print("Erro ao acessar tabela MySQL", e)
+
+                    elif self.buttonP == 'Professores':
+                        selectNusp = self.valuesP['selectNusp']
+                        selectNome = self.valuesP['selectNome']
+                        try:
+
+                            if(selectNusp != '' and selectNome == ''):
+                                consulta_sql = "select * from Professor where Professor.nusp LIKE '%" + selectNusp + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
+
+                                for linha in linhas:
+                                    print("NUSP:", linha[0])
+                                    print("Sala:", linha[1])
+                                    print("Cargo:", linha[2])
+                                    print("Departamento:", linha[3])
+                                    print("Nome:", linha[4])
+                                    print("E-mail:", linha[5])
+                                    print("Telefone:", linha[6], "\n")
+
+                            elif(selectNusp == '' and selectNome != ''):
+                                consulta_sql = "select * from Professor where Professor.nome LIKE '%" + selectNome + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
+
+                                for linha in linhas:
+                                    print("NUSP:", linha[0])
+                                    print("Sala:", linha[1])
+                                    print("Cargo:", linha[2])
+                                    print("Departamento:", linha[3])
+                                    print("Nome:", linha[4])
+                                    print("E-mail:", linha[5])
+                                    print("Telefone:", linha[6], "\n")
+
+                            elif(selectNusp != '' and selectNome != ''):
+                                consulta_sql = "select * from Professor where Professor.nome LIKE '%" + selectNome + "%'" + "AND Professor.nusp LIKE '%" + selectNusp + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
+
+                                for linha in linhas:
+                                    print("NUSP:", linha[0])
+                                    print("Sala:", linha[1])
+                                    print("Cargo:", linha[2])
+                                    print("Departamento:", linha[3])
+                                    print("Nome:", linha[4])
+                                    print("E-mail:", linha[5])
+                                    print("Telefone:", linha[6], "\n")
+
+                        except Error as e:
+                            print("Erro ao acessar tabela MySQL", e)
+
+                    elif self.buttonP == 'Funcionários':
+                        selectNusp = self.valuesP['selectNusp']
+                        selectNome = self.valuesP['selectNome']
+                        try:
+                            if(selectNusp != '' and selectNome == ''):
+                                consulta_sql = "select * from Funcionario where Funcionario.nusp LIKE '%" + selectNusp + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
+
+                                for linha in linhas:
+                                    print("NUSP:", linha[0])
+                                    print("Função:", linha[1])
+                                    print("Nome:", linha[2])
+                                    print("E-mail:", linha[3])
+                                    print("Telefone:", linha[4], "\n")
+
+                            elif(selectNusp == '' and selectNome != ''):
+                                consulta_sql = "select * from Funcionario where Funcionario.nome LIKE '%" + selectNome + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
+
+                                for linha in linhas:
+                                    print("NUSP:", linha[0])
+                                    print("Função:", linha[1])
+                                    print("Nome:", linha[2])
+                                    print("E-mail:", linha[3])
+                                    print("Telefone:", linha[4], "\n")
+
+                            elif(selectNusp != '' and selectNome != ''):
+                                consulta_sql = "select * from Funcionario where Funcionario.nome LIKE '%" + selectNome + "%'" + "AND Funcionario.nusp LIKE '%" + selectNusp + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
+
+                                for linha in linhas:
+                                    print("NUSP:", linha[0])
+                                    print("Função:", linha[1])
+                                    print("Nome:", linha[2])
+                                    print("E-mail:", linha[3])
+                                    print("Telefone:", linha[4], "\n")
+                        except Error as e:
+                            print("Erro ao acessar tabela MySQL", e)
+
+                    elif self.buttonP == sg.WIN_CLOSED or self.buttonP == 'Sair':
+                        break
+                window2.close()
+                window2 = None
 
         window.close()
-
-    # def iniciar(self):
-    #     while True:
-    #         self.button, self.values = self.janela.Read()
-    #         if(self.button == 'Consulta' ):
-    #             try:
-    #                 consulta_sql = "select * from Aluno"
-    #                 self.cursor.execute(consulta_sql)
-    #                 linhas = self.cursor.fetchall()
-    #                 #print(linhas)
-    #                 for linha in linhas:
-    #                     print("NUSP:", linha[0])
-    #                     print("Área:", linha[1])
-    #                     print("Ano de Ingresso:", linha[2])
-    #                     print("Nome:", linha[3])
-    #                     print("E-mail:", linha[4], "\n")
-    #             except Error as e:
-    #                 print("Erro ao acessar tabela MySQL", e)
-            
-    #         elif(self.button == 'Sair' ):
-    #             if (self.con.is_connected()):
-    #                 self.con.close()
-    #                 self.cursor.close()
-    #                 #print("Conexão ao MySQL encerrada")
-    #             break
-
-            # if(self.button == 'Professores'):
-            #     layoutLivro = [
-            #     [sg.Text('Consulte a disponibilidade de livros: ', font='Arial 16', text_color='white')],
-            #     [sg.Input(size=(30,8), key='selectL'), sg.Button('Buscar', size=(10,2))],
-            #     [sg.Output(size=(30,20))], 
-            #     [sg.Button('Voltar', size=(10,2))]
-            #     ]
-            #     self.janelaLivro = sg.Window('Dados da Consulta').layout(layoutLivro)
-            #     while True:
-            #         self.buttonL, self.valuesL = self.janelaLivro.Read()
-            #         selectL = self.valuesL['selectL']
-            #         if (self.buttonL == 'Voltar'):
-            #             self.janelaLivro.Close()
-            #             self.janela.Clear()
-            #             self.janela = sg.Window('Dados da Consulta').layout(self.layout)
-            #             break
-            #         elif (self.buttonL == 'Buscar'):
-            #             print(selectL)
-
-            # if(self.button == 'Equipamentos'):
-            #     layoutEquip = [
-            #     [sg.Text('Consulte a disponibilidade de equipamentos: ', font='Arial 16', text_color='white')],
-            #     [sg.Input(size=(30,8), key='selectE'), sg.Button('Buscar', size=(10,2))],
-            #     [sg.Output(size=(30,20))], 
-            #     [sg.Button('Voltar', size=(10,2))]
-            #     ]
-            #     self.janelaEquip = sg.Window('Dados da Consulta').layout(layoutEquip)
-            #     while True:
-            #         event, self.buttonE, self.valuesE = self.janelaEquip.Read()
-            #         selectE = self.valuesE['selectE']
-            #         if (self.buttonE == 'Voltar' or event == sg.WINDOW_CLOSED):
-            #             break
-            #         elif (self.buttonL == 'Buscar'):
-            #             print(selectE)
 #%%
 sg.theme('Black')
+
 __location__ = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
-professores = pd.read_csv(os.path.join(__location__, "sgube_professores.csv"))
+database = [pd.read_csv(os.path.join(__location__, "alunos.csv")),
+            pd.read_csv(os.path.join(__location__, "Professor.csv")),
+            pd.read_csv(os.path.join(__location__, "Trabalha_Em.csv")),
+            pd.read_csv(os.path.join(__location__, "Responsavel_Por.csv")),
+            pd.read_csv(os.path.join(__location__, "Livro.csv")),
+            pd.read_csv(os.path.join(__location__, "Laboratorio.csv")),
+            pd.read_csv(os.path.join(__location__, "Funcionario.csv")),
+            pd.read_csv(os.path.join(__location__, "tipoEquipamento.csv")),
+            pd.read_csv(os.path.join(__location__, "Equipamento.csv"))
+]
 
-from tkinter import font
-import tkinter
-root = tkinter.Tk()
-fonts = list(font.families())
-fonts.sort()
-root.destroy()
+entity = ["Aluno", "Professor", "Trabalha_Em", "Responsavel_Por", "Livro", "Laboratorio", "Funcionario", "tipoEquipamento", "Equipamento"]
 
-print(fonts)
-
-#%%
 tela = Interface()
 tela.connect()
-#tela.insert()
+for i in range(len(entity)):
+    tela.insert(geraInsert(database[i], entity[i]))
 tela.iniciar()
 #tela.commit()
 #tela.endConnection()
-

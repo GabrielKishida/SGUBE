@@ -1,4 +1,4 @@
-idtipoEquipLab,nome,tipo,modelo
+idtipoEquip,nome,tipo,modelo
 100,Raspberry Pi,A,102
 101,Arduino,Uno,986654
 102,Multímetro,Padrão,159

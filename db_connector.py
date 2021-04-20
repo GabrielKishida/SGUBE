@@ -122,15 +122,18 @@ class Interface:
                     if self.buttonE == 'Buscar':
                         selectE = self.valuesE['selectE']
                         try:
-                            consulta_sql = "select * from tipoEquipamento, Equipamento where tipoEquipamento.idtipoEquipLab = Equipamento.tipoEquipamento_idtipoEquipLab AND " + "tipoEquipamento.nome LIKE '%" + selectE + "%'"
+                            #consulta_sql = "select Biblioteca.nome, tipoEquipamento.nome, tipoEquipamento.tipo, tipoEquipamento.modelo, Aparato.disponivel from ((((tipoEquipamento INNER JOIN Equipamento ON tipoEquipamento.idtipoEquip = Equipamento.tipoEquipamento_idtipoEquip) INNER JOIN Aparato ON Aparato.idAparato = Equipamento.Aparato_idAparato) INNER JOIN Biblioteca_has_Aparato ON Biblioteca_has_Aparato.Aparato_idAparato = Aparato.idAparato) INNER JOIN Biblioteca ON Biblioteca.idBiblioteca = Biblioteca_has_Aparato.Biblioteca_idBiblioteca) where " + "tipoEquipamento.nome LIKE '%" + selectE + "%'"
+                            consulta_sql = "select tipoEquipamento.nome, Laboratorio_has_Aparato.Laboratorio_idLaboratorio from (((tipoEquipamento INNER JOIN Equipamento ON tipoEquipamento.idtipoEquip = Equipamento.tipoEquipamento_idtipoEquip) INNER JOIN Aparato ON Aparato.idAparato = Equipamento.Aparato_idAparato) INNER JOIN Laboratorio_has_Aparato ON Laboratorio_has_Aparato.Aparato_idAparato = Aparato.idAparato) where " + "tipoEquipamento.nome LIKE '%" + selectE + "%'"
                             self.cursor.execute(consulta_sql)
                             linhas = self.cursor.fetchall()
-
                             for linha in linhas:
-                                print("ID:", linha[0])
-                                print("Nome:", linha[1])
-                                print("Modelo:", linha[2])
-                                print("Tipo:", linha[3], "\n")
+                                #print("Biblioteca:", linha[0])
+                                #print("Nome:", linha[1])
+                                #print("Tipo:", linha[2])
+                                #print("Modelo:", linha[3])
+                                #print("Disponivel:", linha[4], "\n")
+                                print("Nome tipo equipamento: ", linha[0])
+                                print("id Lab: ", linha[1], "\n")
                         except Error as e:
                             print("Erro ao acessar tabela MySQL", e)
                     elif self.buttonE == sg.WIN_CLOSED or self.buttonE == 'Sair':
@@ -366,10 +369,14 @@ database = [pd.read_csv(os.path.join(__location__, "alunos.csv")),
             pd.read_csv(os.path.join(__location__, "Funcionario.csv")),
             pd.read_csv(os.path.join(__location__, "tipoEquipamento.csv")),
             pd.read_csv(os.path.join(__location__, "Equipamento.csv")),
-            pd.read_csv(os.path.join(__location__, "tipoLivro.csv"))
+            pd.read_csv(os.path.join(__location__, "tipoLivro.csv")),
+            #pd.read_csv(os.path.join(__location__, "Laboratorio_has_Aparato.csv")),
+            pd.read_csv(os.path.join(__location__, "Biblioteca_has_Aparato.csv")),
+            pd.read_csv(os.path.join(__location__, "Biblioteca.csv")),
+            pd.read_csv(os.path.join(__location__, "Aparato.csv"))
 ]
 
-entity = ["Aluno", "Professor", "Trabalha_Em", "Responsavel_Por", "Livro", "Laboratorio", "Funcionario", "tipoEquipamento", "Equipamento", "tipoLivro"]
+entity = ["Aluno", "Professor", "Trabalha_Em", "Responsavel_Por", "Livro", "Laboratorio", "Funcionario", "tipoEquipamento", "Equipamento", "tipoLivro", "Biblioteca_has_Aparato", "Biblioteca", "Aparato"]
 
 tela = Interface()
 tela.connect()

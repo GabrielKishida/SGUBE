@@ -33,6 +33,38 @@ def geraInsert(dataFrame, entidade):
 __location__ = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
+def deviceQuery(device, place):
+    if device == "Livro":
+        query = "select tipo" + device + ".nome, tipo" + device + ".autor, tipo" + device + ".edicao, tipo" + device + ".ano_lancamento, " + place + ".nome, " + place + ".endereco, Aparato.disponivel "
+    elif device == "Equipamento":
+        query = "select tipo" + device + ".nome, tipo" + device + ".tipo, tipo" + device + ".modelo, " + place + ".nome, " + place + ".endereco, Aparato.disponivel "
+    else:
+        print("Algo deu errado em deviceQuery")
+        return("")
+    query += "from ((((tipo" + device + " "
+    query += "INNER JOIN " + device + " ON tipo" + device + ".idtipo" + device + " = " + device + ".tipo" + device + "_idtipo" + device + ") "
+    query += "INNER JOIN Aparato ON Aparato.idAparato = " + device + ".Aparato_idAparato) "
+    query += "INNER JOIN " + place + "_has_Aparato ON " + place + "_has_Aparato.Aparato_idAparato = Aparato.idAparato) "
+    query += "INNER JOIN " + place + " ON " + place + ".id" + place + " = " + place + "_has_Aparato." + place + "_id" + place + ") "
+    return query
+
+def loanQuery(person, device):
+    query = query = "select " + person + ".nome, " + person + ".nusp, Aparato.idAparato, tipo" + device + ".nome, "
+    if device == "Equipamento":
+        query += "tipo" + device + ".tipo, tipo" + device + ".modelo "
+    elif device == "Livro":
+        query += "tipo" + device + ".autor, tipo" + device + ".edicao, tipo" + device + ".ano_lancamento "
+    else:
+        print("Algo deu errado em deviceQuery")
+        return("")
+    query += "from ((((" + person + " "
+    query += "INNER JOIN " + person + "_has_Aparato ON " + person + ".nusp = " + person + "_has_Aparato." + person + "_nusp) "
+    query += "INNER JOIN Aparato ON Aparato.idAparato = " + person + "_has_Aparato.Aparato_idAparato) "
+    query += "INNER JOIN " + device + " ON " + device + ".Aparato_idAparato = Aparato.idAparato)"
+    query += "INNER JOIN tipo" + device + " ON " + device + ".tipo" + device + "_idtipoEquip = tipo" + device + ".idtipoEquip) "
+    return query
+
+
 class Interface:
     def __init__(self):
         self.layout = [
@@ -123,17 +155,30 @@ class Interface:
                         selectE = self.valuesE['selectE']
                         try:
                             #consulta_sql = "select Biblioteca.nome, tipoEquipamento.nome, tipoEquipamento.tipo, tipoEquipamento.modelo, Aparato.disponivel from ((((tipoEquipamento INNER JOIN Equipamento ON tipoEquipamento.idtipoEquip = Equipamento.tipoEquipamento_idtipoEquip) INNER JOIN Aparato ON Aparato.idAparato = Equipamento.Aparato_idAparato) INNER JOIN Biblioteca_has_Aparato ON Biblioteca_has_Aparato.Aparato_idAparato = Aparato.idAparato) INNER JOIN Biblioteca ON Biblioteca.idBiblioteca = Biblioteca_has_Aparato.Biblioteca_idBiblioteca) where " + "tipoEquipamento.nome LIKE '%" + selectE + "%'"
-                            consulta_sql = "select tipoEquipamento.nome, Laboratorio_has_Aparato.Laboratorio_idLaboratorio from (((tipoEquipamento INNER JOIN Equipamento ON tipoEquipamento.idtipoEquip = Equipamento.tipoEquipamento_idtipoEquip) INNER JOIN Aparato ON Aparato.idAparato = Equipamento.Aparato_idAparato) INNER JOIN Laboratorio_has_Aparato ON Laboratorio_has_Aparato.Aparato_idAparato = Aparato.idAparato) where " + "tipoEquipamento.nome LIKE '%" + selectE + "%'"
+                            #consulta_sql = "select tipoEquipamento.nome, tipoEquipamento.tipo, tipoEquipamento.modelo, Laboratorio.nome, Laboratorio.endereco, Aparato.disponivel from ((((tipoEquipamento INNER JOIN Equipamento ON tipoEquipamento.idtipoEquip = Equipamento.tipoEquipamento_idtipoEquip) INNER JOIN Aparato ON Aparato.idAparato = Equipamento.Aparato_idAparato) INNER JOIN Laboratorio_has_Aparato ON Laboratorio_has_Aparato.Aparato_idAparato = Aparato.idAparato) INNER JOIN Laboratorio ON Laboratorio.idLaboratorio = Laboratorio_has_Aparato.Laboratorio_idLaboratorio) where " + "tipoEquipamento.nome LIKE '%" + selectE + "%'"
+                            consulta_sql = deviceQuery("Equipamento","Laboratorio") + "where " + "tipoEquipamento.nome LIKE '%" + selectE + "%'"
                             self.cursor.execute(consulta_sql)
                             linhas = self.cursor.fetchall()
                             for linha in linhas:
-                                #print("Biblioteca:", linha[0])
-                                #print("Nome:", linha[1])
-                                #print("Tipo:", linha[2])
-                                #print("Modelo:", linha[3])
-                                #print("Disponivel:", linha[4], "\n")
-                                print("Nome tipo equipamento: ", linha[0])
-                                print("id Lab: ", linha[1], "\n")
+                                print("Nome equipamento: ", linha[0])
+                                print("Tipo: ", linha[1])
+                                print("Modelo: ", linha[2])
+                                print("Laboratorio: ", linha[3])
+                                print("Endereco do Lab: ", linha[4])
+                                print("Disponibilidade: ", linha[5], "\n")
+
+                            #consulta_sql = "select tipoEquipamento.nome, tipoEquipamento.tipo, tipoEquipamento.modelo, Biblioteca.nome, Biblioteca.endereco, Aparato.disponivel from ((((tipoEquipamento INNER JOIN Equipamento ON tipoEquipamento.idtipoEquip = Equipamento.tipoEquipamento_idtipoEquip) INNER JOIN Aparato ON Aparato.idAparato = Equipamento.Aparato_idAparato) INNER JOIN Biblioteca_has_Aparato ON Biblioteca_has_Aparato.Aparato_idAparato = Aparato.idAparato) INNER JOIN Biblioteca ON Biblioteca.idBiblioteca = Biblioteca_has_Aparato.Biblioteca_idBiblioteca) where " + "tipoEquipamento.nome LIKE '%" + selectE + "%'"
+                            consulta_sql = deviceQuery("Equipamento","Biblioteca") + "where " + "tipoEquipamento.nome LIKE '%" + selectE + "%'"
+                            self.cursor.execute(consulta_sql)
+                            linhas = self.cursor.fetchall()
+                            for linha in linhas:
+                                print("Nome equipamento: ", linha[0])
+                                print("Tipo: ", linha[1])
+                                print("Modelo: ", linha[2])
+                                print("Biblioteca: ", linha[3])
+                                print("Endereco do Bib: ", linha[4])
+                                print("Disponibilidade: ", linha[5], "\n")
+
                         except Error as e:
                             print("Erro ao acessar tabela MySQL", e)
                     elif self.buttonE == sg.WIN_CLOSED or self.buttonE == 'Sair':
@@ -150,56 +195,120 @@ class Interface:
                         selectAutor = self.valuesL['selectAutor']
                         try:
                             if(selectLivro != '' and selectAutor == ''):
-                                consulta_sql = "select * from tipoLivro, Livro where Livro.tipoLivro_idtipoLivro = tipoLivro.idtipoLivro AND tipoLivro.nome LIKE '%" + selectLivro + "%'"
+                                #consulta_sql = "select * from tipoLivro, Livro where Livro.tipoLivro_idtipoLivro = tipoLivro.idtipoLivro AND tipoLivro.nome LIKE '%" + selectLivro + "%'"
+                                
+                                # Consulta para checar livros em bibliotecas
+                                #consulta_sql = "select tipoLivro.nome, tipoLivro.autor, tipoLivro.edicao, tipoLivro.ano_lancamento, Biblioteca.nome, Biblioteca.endereco, Aparato.disponivel from ((((tipoLivro INNER JOIN Livro ON tipoLivro.idtipoLivro = Livro.tipoLivro_idtipoLivro) INNER JOIN Aparato ON Aparato.idAparato = Livro.Aparato_idAparato) INNER JOIN Biblioteca_has_Aparato ON Biblioteca_has_Aparato.Aparato_idAparato = Aparato.idAparato) INNER JOIN Biblioteca ON Biblioteca.idBiblioteca = Biblioteca_has_Aparato.Biblioteca_idBiblioteca) where " + "tipoLivro.nome LIKE '%" + selectLivro + "%'"
+                                consulta_sql = deviceQuery("Livro","Biblioteca") + "where " + "tipoLivro.nome LIKE '%" + selectLivro + "%'"
                                 self.cursor.execute(consulta_sql)
                                 linhas = self.cursor.fetchall()
 
                                 for linha in linhas:
-                                    print("ID:", linha[0])
-                                    print("Nome:", linha[1])
-                                    print("Autor:", linha[2])
-                                    print("Edição:", linha[3])
-                                    print("Ano de Lançamento:", linha[4], "\n")
+                                    print("Nome:", linha[0])
+                                    print("Autor:", linha[1])
+                                    print("Edição:", linha[2])
+                                    print("Ano de Lançamento:", linha[3])
+                                    print("Nome da biblioteca:", linha[4])
+                                    print("Endereco da bib:", linha[5])
+                                    print("Disponibilidade:", linha[6], "\n")
+
+                                # Consulta para checar livros em Laboratorios
+                                #consulta_sql = "select tipoLivro.nome, tipoLivro.autor, tipoLivro.edicao, tipoLivro.ano_lancamento, Laboratorio.nome, Laboratorio.endereco, Aparato.disponivel from ((((tipoLivro INNER JOIN Livro ON tipoLivro.idtipoLivro = Livro.tipoLivro_idtipoLivro) INNER JOIN Aparato ON Aparato.idAparato = Livro.Aparato_idAparato) INNER JOIN Laboratorio_has_Aparato ON Laboratorio_has_Aparato.Aparato_idAparato = Aparato.idAparato) INNER JOIN Laboratorio ON Laboratorio.idLaboratorio = Laboratorio_has_Aparato.Laboratorio_idLaboratorio) where " + "tipoLivro.nome LIKE '%" + selectLivro + "%'"
+                                consulta_sql = deviceQuery("Livro","Laboratorio") + "where " + "tipoLivro.nome LIKE '%" + selectLivro + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
+
+                                for linha in linhas:
+                                    print("Nome:", linha[0])
+                                    print("Autor:", linha[1])
+                                    print("Edição:", linha[2])
+                                    print("Ano de Lançamento:", linha[3])
+                                    print("Nome do Laboratorio:", linha[4])
+                                    print("Endereco do lab:", linha[5])
+                                    print("Disponibilidade:", linha[6], "\n")
 
                             elif(selectLivro == '' and selectAutor != ''):
-                                consulta_sql = "select * from tipoLivro, Livro where Livro.tipoLivro_idtipoLivro = tipoLivro.idtipoLivro AND tipoLivro.autor LIKE '%" + selectAutor + "%'"
+                                #consulta_sql = "select * from tipoLivro, Livro where Livro.tipoLivro_idtipoLivro = tipoLivro.idtipoLivro AND tipoLivro.autor LIKE '%" + selectAutor + "%'"
+                                
+                                # Consulta para checar livros em bibliotecas
+                                #consulta_sql = "select tipoLivro.nome, tipoLivro.autor, tipoLivro.edicao, tipoLivro.ano_lancamento, Biblioteca.nome, Biblioteca.endereco, Aparato.disponivel from ((((tipoLivro INNER JOIN Livro ON tipoLivro.idtipoLivro = Livro.tipoLivro_idtipoLivro) INNER JOIN Aparato ON Aparato.idAparato = Livro.Aparato_idAparato) INNER JOIN Biblioteca_has_Aparato ON Biblioteca_has_Aparato.Aparato_idAparato = Aparato.idAparato) INNER JOIN Biblioteca ON Biblioteca.idBiblioteca = Biblioteca_has_Aparato.Biblioteca_idBiblioteca) where " + "tipoLivro.autor LIKE '%" + selectAutor + "%'"
+                                consulta_sql = deviceQuery("Livro","Biblioteca") + "where " + "tipoLivro.autor LIKE '%" + selectAutor + "%'"
                                 self.cursor.execute(consulta_sql)
                                 linhas = self.cursor.fetchall()
 
                                 for linha in linhas:
-                                    print("ID:", linha[0])
-                                    print("Nome:", linha[1])
-                                    print("Autor:", linha[2])
-                                    print("Edição:", linha[3])
-                                    print("Ano de Lançamento:", linha[4], "\n")
+                                    print("Nome:", linha[0])
+                                    print("Autor:", linha[1])
+                                    print("Edição:", linha[2])
+                                    print("Ano de Lançamento:", linha[3])
+                                    print("Nome da biblioteca:", linha[4])
+                                    print("Endereco da bib:", linha[5])
+                                    print("Disponibilidade:", linha[6], "\n")
+
+                                # Consulta para checar livros em Laboratorios
+                                #consulta_sql = "select tipoLivro.nome, tipoLivro.autor, tipoLivro.edicao, tipoLivro.ano_lancamento, Laboratorio.nome, Laboratorio.endereco, Aparato.disponivel from ((((tipoLivro INNER JOIN Livro ON tipoLivro.idtipoLivro = Livro.tipoLivro_idtipoLivro) INNER JOIN Aparato ON Aparato.idAparato = Livro.Aparato_idAparato) INNER JOIN Laboratorio_has_Aparato ON Laboratorio_has_Aparato.Aparato_idAparato = Aparato.idAparato) INNER JOIN Laboratorio ON Laboratorio.idLaboratorio = Laboratorio_has_Aparato.Laboratorio_idLaboratorio) where " + "tipoLivro.autor LIKE '%" + selectAutor + "%'"
+                                consulta_sql = consulta_sql = deviceQuery("Livro","Laboratorio") + "where " + "tipoLivro.autor LIKE '%" + selectAutor + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
+
+                                for linha in linhas:
+                                    print("Nome:", linha[0])
+                                    print("Autor:", linha[1])
+                                    print("Edição:", linha[2])
+                                    print("Ano de Lançamento:", linha[3])
+                                    print("Nome do Laboratorio:", linha[4])
+                                    print("Endereco do lab:", linha[5])
+                                    print("Disponibilidade:", linha[6], "\n")
 
                             elif(selectLivro != '' and selectAutor != ''):
-                                consulta_sql = "select * from tipoLivro, Livro where Livro.tipoLivro_idtipoLivro = tipoLivro.idtipoLivro AND tipoLivro.nome LIKE '%" + selectLivro + "%'" + " AND tipoLivro.autor LIKE '%" + selectAutor + "%'"
+                                #consulta_sql = "select * from tipoLivro, Livro where Livro.tipoLivro_idtipoLivro = tipoLivro.idtipoLivro AND tipoLivro.nome LIKE '%" + selectLivro + "%'" + " AND tipoLivro.autor LIKE '%" + selectAutor + "%'"
+                                
+                                # Consulta para checar livros em bibliotecas
+                                #consulta_sql = "select tipoLivro.nome, tipoLivro.autor, tipoLivro.edicao, tipoLivro.ano_lancamento, Biblioteca.nome, Biblioteca.endereco, Aparato.disponivel from ((((tipoLivro INNER JOIN Livro ON tipoLivro.idtipoLivro = Livro.tipoLivro_idtipoLivro) INNER JOIN Aparato ON Aparato.idAparato = Livro.Aparato_idAparato) INNER JOIN Biblioteca_has_Aparato ON Biblioteca_has_Aparato.Aparato_idAparato = Aparato.idAparato) INNER JOIN Biblioteca ON Biblioteca.idBiblioteca = Biblioteca_has_Aparato.Biblioteca_idBiblioteca) where tipoLivro.nome LIKE '%" + selectLivro + "%'" + " AND tipoLivro.autor LIKE '%" + selectAutor + "%'"
+                                consulta_sql = deviceQuery("Livro","Biblioteca") + "where tipoLivro.nome LIKE '%" + selectLivro + "%'" + " AND tipoLivro.autor LIKE '%" + selectAutor + "%'"
                                 self.cursor.execute(consulta_sql)
                                 linhas = self.cursor.fetchall()
 
                                 for linha in linhas:
-                                    print("ID:", linha[0])
-                                    print("Nome:", linha[1])
-                                    print("Autor:", linha[2])
-                                    print("Edição:", linha[3])
-                                    print("Ano de Lançamento:", linha[4], "\n")
+                                    print("Nome:", linha[0])
+                                    print("Autor:", linha[1])
+                                    print("Edição:", linha[2])
+                                    print("Ano de Lançamento:", linha[3])
+                                    print("Nome da biblioteca:", linha[4])
+                                    print("Endereco da bib:", linha[5])
+                                    print("Disponibilidade:", linha[6], "\n")
+
+                                # Consulta para checar livros em Laboratorios
+                                #consulta_sql = "select tipoLivro.nome, tipoLivro.autor, tipoLivro.edicao, tipoLivro.ano_lancamento, Laboratorio.nome, Laboratorio.endereco, Aparato.disponivel from ((((tipoLivro INNER JOIN Livro ON tipoLivro.idtipoLivro = Livro.tipoLivro_idtipoLivro) INNER JOIN Aparato ON Aparato.idAparato = Livro.Aparato_idAparato) INNER JOIN Laboratorio_has_Aparato ON Laboratorio_has_Aparato.Aparato_idAparato = Aparato.idAparato) INNER JOIN Laboratorio ON Laboratorio.idLaboratorio = Laboratorio_has_Aparato.Laboratorio_idLaboratorio) where tipoLivro.nome LIKE '%" + selectLivro + "%'" + " AND tipoLivro.autor LIKE '%" + selectAutor + "%'"
+                                consulta_sql = deviceQuery("Livro","Laboratorio") + "where tipoLivro.nome LIKE '%" + selectLivro + "%'" + " AND tipoLivro.autor LIKE '%" + selectAutor + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
+
+                                for linha in linhas:
+                                    print("Nome:", linha[0])
+                                    print("Autor:", linha[1])
+                                    print("Edição:", linha[2])
+                                    print("Ano de Lançamento:", linha[3])
+                                    print("Nome do Laboratorio:", linha[4])
+                                    print("Endereco do lab:", linha[5])
+                                    print("Disponibilidade:", linha[6], "\n")
 
                         except Error as e:
                             print("Erro ao acessar tabela MySQL", e)
 
                     elif self.buttonL == 'Buscar':
                         try:
-                            consulta_sql = "select * from Aluno"
-                            self.cursor.execute(consulta_sql)
-                            linhas = self.cursor.fetchall()
+                            print("Insira algum parâmetro de busca!", "\n")
+                            #consulta_sql = "select * from Aluno"
+                            #self.cursor.execute(consulta_sql)
+                            #linhas = self.cursor.fetchall()
  
-                            for linha in linhas:
-                                print("NUSP:", linha[0])
-                                print("Área:", linha[1])
-                                print("Ano de Ingresso:", linha[2])
-                                print("Nome:", linha[3])
-                                print("E-mail:", linha[4], "\n")
+                            #for linha in linhas:
+                                #print("NUSP:", linha[0])
+                                #print("Área:", linha[1])
+                                #print("Ano de Ingresso:", linha[2])
+                                #print("Nome:", linha[3])
+                                #print("E-mail:", linha[4], "\n")
                         except Error as e:
                             print("Erro ao acessar tabela MySQL", e)
                     elif self.buttonL == sg.WIN_CLOSED or self.buttonL == 'Sair':
@@ -217,40 +326,89 @@ class Interface:
                         try:
 
                             if(selectNusp != '' and selectNome == ''):
-                                consulta_sql = "select * from Aluno where Aluno.nusp LIKE '%" + selectNusp + "%'"
+                                #consulta_sql = "select * from Aluno where Aluno.nusp LIKE '%" + selectNusp + "%'"
+                                #consulta_sql = "select Aluno.nome, Aluno.nusp, Aparato.idAparato, tipoEquipamento.nome, tipoEquipamento.tipo, tipoEquipamento.modelo from ((((Aluno INNER JOIN Aluno_has_Aparato ON Aluno.nusp = Aluno_has_Aparato.Aluno_nusp) INNER JOIN Aparato ON Aparato.idAparato = Aluno_has_Aparato.Aparato_idAparato) INNER JOIN Equipamento ON Equipamento.Aparato_idAparato = Aparato.idAparato) INNER JOIN tipoEquipamento ON Equipamento.tipoEquipamento_idtipoEquip = tipoEquipamento.idtipoEquip) where Aluno.nusp LIKE '%" + selectNusp + "%' "
+                                
+                                consulta_sql = loanQuery("Aluno","Equipamento") + "where Aluno.nusp LIKE '%" + selectNusp + "%'"
                                 self.cursor.execute(consulta_sql)
                                 linhas = self.cursor.fetchall()
 
                                 for linha in linhas:
-                                    print("NUSP:", linha[0])
-                                    print("Área:", linha[1])
-                                    print("Ano de Ingresso:", linha[2])
-                                    print("Nome:", linha[3])
-                                    print("E-mail:", linha[4], "\n")
+                                    print("Nome do Aluno: ", linha[0])
+                                    print("NUSP do Aluno: ", linha[1])
+                                    print("ID Aparato: ", linha[2])
+                                    print("Nome Equipamento: ", linha[3])
+                                    print("Tipo Equipamento: ", linha[4])
+                                    print("Modelo Equipamento: ", linha[5], "\n")
+                                
+                                consulta_sql = loanQuery("Aluno","Livro") + "where Aluno.nusp LIKE '%" + selectNusp + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
+
+                                for linha in linhas:
+                                    print("Nome do Aluno: ", linha[0])
+                                    print("NUSP do Aluno: ", linha[1])
+                                    print("ID Aparato: ", linha[2])
+                                    print("Nome Livro: ", linha[3])
+                                    print("Autor: ", linha[4])
+                                    print("Edição: ", linha[5])
+                                    print("Ano de lançamento: ", linha[6], "\n")
 
                             elif(selectNusp == '' and selectNome != ''):
-                                consulta_sql = "select * from Aluno where Aluno.nome LIKE '%" + selectNome + "%'"
+                                #consulta_sql = "select * from Aluno where Aluno.nome LIKE '%" + selectNome + "%'"
+
+                                consulta_sql = loanQuery("Aluno","Equipamento") + "where Aluno.nome LIKE '%" + selectNome + "%'"
                                 self.cursor.execute(consulta_sql)
                                 linhas = self.cursor.fetchall()
 
                                 for linha in linhas:
-                                    print("NUSP:", linha[0])
-                                    print("Área:", linha[1])
-                                    print("Ano de Ingresso:", linha[2])
-                                    print("Nome:", linha[3])
-                                    print("E-mail:", linha[4], "\n")
+                                    print("Nome do Aluno: ", linha[0])
+                                    print("NUSP do Aluno: ", linha[1])
+                                    print("ID Aparato: ", linha[2])
+                                    print("Nome Equipamento: ", linha[3])
+                                    print("Tipo Equipamento: ", linha[4])
+                                    print("Modelo Equipamento: ", linha[5], "\n")
+                                
+                                consulta_sql = loanQuery("Aluno","Livro") + "where Aluno.nome LIKE '%" + selectNome + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
+
+                                for linha in linhas:
+                                    print("Nome do Aluno: ", linha[0])
+                                    print("NUSP do Aluno: ", linha[1])
+                                    print("ID Aparato: ", linha[2])
+                                    print("Nome Livro: ", linha[3])
+                                    print("Autor: ", linha[4])
+                                    print("Edição: ", linha[5])
+                                    print("Ano de lançamento: ", linha[6], "\n")
 
                             elif(selectNusp != '' and selectNome != ''):
-                                consulta_sql = "select * from Aluno where Aluno.nome LIKE '%" + selectNome + "%'" + "AND Aluno.nusp LIKE '%" + selectNusp + "%'"
+                                #consulta_sql = "select * from Aluno where Aluno.nome LIKE '%" + selectNome + "%'" + "AND Aluno.nusp LIKE '%" + selectNusp + "%'"
+                                
+                                consulta_sql = loanQuery("Aluno","Equipamento") + "where Aluno.nome LIKE '%" + selectNome + "%'" + "AND Aluno.nusp LIKE '%" + selectNusp + "%'"
                                 self.cursor.execute(consulta_sql)
                                 linhas = self.cursor.fetchall()
 
                                 for linha in linhas:
-                                    print("NUSP:", linha[0])
-                                    print("Área:", linha[1])
-                                    print("Ano de Ingresso:", linha[2])
-                                    print("Nome:", linha[3])
-                                    print("E-mail:", linha[4], "\n")
+                                    print("Nome do Aluno: ", linha[0])
+                                    print("NUSP do Aluno: ", linha[1])
+                                    print("ID Aparato: ", linha[2])
+                                    print("Nome Equipamento: ", linha[3])
+                                    print("Tipo Equipamento: ", linha[4])
+                                    print("Modelo Equipamento: ", linha[5], "\n")
+                                
+                                consulta_sql = loanQuery("Aluno","Livro") + "where Aluno.nome LIKE '%" + selectNome + "%'" + "AND Aluno.nusp LIKE '%" + selectNusp + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
+
+                                for linha in linhas:
+                                    print("Nome do Aluno: ", linha[0])
+                                    print("NUSP do Aluno: ", linha[1])
+                                    print("ID Aparato: ", linha[2])
+                                    print("Nome Livro: ", linha[3])
+                                    print("Autor: ", linha[4])
+                                    print("Edição: ", linha[5])
+                                    print("Ano de lançamento: ", linha[6], "\n")
 
 
                         except Error as e:
@@ -262,46 +420,88 @@ class Interface:
                         try:
 
                             if(selectNusp != '' and selectNome == ''):
-                                consulta_sql = "select * from Professor where Professor.nusp LIKE '%" + selectNusp + "%'"
+                                #consulta_sql = "select * from Professor where Professor.nusp LIKE '%" + selectNusp + "%'"
+                                
+                                consulta_sql = loanQuery("Professor","Equipamento") + "where Professor.nusp LIKE '%" + selectNusp + "%'"
                                 self.cursor.execute(consulta_sql)
                                 linhas = self.cursor.fetchall()
 
                                 for linha in linhas:
-                                    print("NUSP:", linha[0])
-                                    print("Sala:", linha[1])
-                                    print("Cargo:", linha[2])
-                                    print("Departamento:", linha[3])
-                                    print("Nome:", linha[4])
-                                    print("E-mail:", linha[5])
-                                    print("Telefone:", linha[6], "\n")
+                                    print("Nome do Professor: ", linha[0])
+                                    print("NUSP do Professor: ", linha[1])
+                                    print("ID Aparato: ", linha[2])
+                                    print("Nome Equipamento: ", linha[3])
+                                    print("Tipo Equipamento: ", linha[4])
+                                    print("Modelo Equipamento: ", linha[5], "\n")
+                                
+                                consulta_sql = loanQuery("Professor","Livro") + "where Professor.nusp LIKE '%" + selectNusp + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
+
+                                for linha in linhas:
+                                    print("Nome do Professor: ", linha[0])
+                                    print("NUSP do Professor: ", linha[1])
+                                    print("ID Aparato: ", linha[2])
+                                    print("Nome Livro: ", linha[3])
+                                    print("Autor: ", linha[4])
+                                    print("Edição: ", linha[5])
+                                    print("Ano de lançamento: ", linha[6], "\n")
 
                             elif(selectNusp == '' and selectNome != ''):
-                                consulta_sql = "select * from Professor where Professor.nome LIKE '%" + selectNome + "%'"
+                                #consulta_sql = "select * from Professor where Professor.nome LIKE '%" + selectNome + "%'"
+                                
+                                consulta_sql = loanQuery("Professor","Equipamento") + "where Professor.nome LIKE '%" + selectNome + "%'"
                                 self.cursor.execute(consulta_sql)
                                 linhas = self.cursor.fetchall()
 
                                 for linha in linhas:
-                                    print("NUSP:", linha[0])
-                                    print("Sala:", linha[1])
-                                    print("Cargo:", linha[2])
-                                    print("Departamento:", linha[3])
-                                    print("Nome:", linha[4])
-                                    print("E-mail:", linha[5])
-                                    print("Telefone:", linha[6], "\n")
+                                    print("Nome do Professor: ", linha[0])
+                                    print("NUSP do Professor: ", linha[1])
+                                    print("ID Aparato: ", linha[2])
+                                    print("Nome Equipamento: ", linha[3])
+                                    print("Tipo Equipamento: ", linha[4])
+                                    print("Modelo Equipamento: ", linha[5], "\n")
+                                
+                                consulta_sql = loanQuery("Professor","Livro") + "where Professor.nome LIKE '%" + selectNome + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
+
+                                for linha in linhas:
+                                    print("Nome do Professor: ", linha[0])
+                                    print("NUSP do Professor: ", linha[1])
+                                    print("ID Aparato: ", linha[2])
+                                    print("Nome Livro: ", linha[3])
+                                    print("Autor: ", linha[4])
+                                    print("Edição: ", linha[5])
+                                    print("Ano de lançamento: ", linha[6], "\n")
 
                             elif(selectNusp != '' and selectNome != ''):
-                                consulta_sql = "select * from Professor where Professor.nome LIKE '%" + selectNome + "%'" + "AND Professor.nusp LIKE '%" + selectNusp + "%'"
+                                #consulta_sql = "select * from Professor where Professor.nome LIKE '%" + selectNome + "%'" + "AND Professor.nusp LIKE '%" + selectNusp + "%'"
+                                
+                                consulta_sql = loanQuery("Professor","Equipamento") + "where Professor.nome LIKE '%" + selectNome + "%'" + "AND Professor.nusp LIKE '%" + selectNusp + "%'"
                                 self.cursor.execute(consulta_sql)
                                 linhas = self.cursor.fetchall()
 
                                 for linha in linhas:
-                                    print("NUSP:", linha[0])
-                                    print("Sala:", linha[1])
-                                    print("Cargo:", linha[2])
-                                    print("Departamento:", linha[3])
-                                    print("Nome:", linha[4])
-                                    print("E-mail:", linha[5])
-                                    print("Telefone:", linha[6], "\n")
+                                    print("Nome do Professor: ", linha[0])
+                                    print("NUSP do Professor: ", linha[1])
+                                    print("ID Aparato: ", linha[2])
+                                    print("Nome Equipamento: ", linha[3])
+                                    print("Tipo Equipamento: ", linha[4])
+                                    print("Modelo Equipamento: ", linha[5], "\n")
+                                
+                                consulta_sql = loanQuery("Professor","Livro") + "where Professor.nome LIKE '%" + selectNome + "%'" + "AND Professor.nusp LIKE '%" + selectNusp + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
+
+                                for linha in linhas:
+                                    print("Nome do Professor: ", linha[0])
+                                    print("NUSP do Professor: ", linha[1])
+                                    print("ID Aparato: ", linha[2])
+                                    print("Nome Livro: ", linha[3])
+                                    print("Autor: ", linha[4])
+                                    print("Edição: ", linha[5])
+                                    print("Ano de lançamento: ", linha[6], "\n")
 
                         except Error as e:
                             print("Erro ao acessar tabela MySQL", e)
@@ -311,40 +511,90 @@ class Interface:
                         selectNome = self.valuesP['selectNome']
                         try:
                             if(selectNusp != '' and selectNome == ''):
-                                consulta_sql = "select * from Funcionario where Funcionario.nusp LIKE '%" + selectNusp + "%'"
+                                #consulta_sql = "select * from Funcionario where Funcionario.nusp LIKE '%" + selectNusp + "%'"
+                                
+                                consulta_sql = loanQuery("Funcionario","Equipamento") + "where Funcionario.nusp LIKE '%" + selectNusp + "%'"
                                 self.cursor.execute(consulta_sql)
                                 linhas = self.cursor.fetchall()
 
                                 for linha in linhas:
-                                    print("NUSP:", linha[0])
-                                    print("Função:", linha[1])
-                                    print("Nome:", linha[2])
-                                    print("E-mail:", linha[3])
-                                    print("Telefone:", linha[4], "\n")
+                                    print("Nome do Funcionario: ", linha[0])
+                                    print("NUSP do Funcionario: ", linha[1])
+                                    print("ID Aparato: ", linha[2])
+                                    print("Nome Equipamento: ", linha[3])
+                                    print("Tipo Equipamento: ", linha[4])
+                                    print("Modelo Equipamento: ", linha[5], "\n")
+                                
+                                consulta_sql = loanQuery("Funcionario","Livro") + "where Funcionario.nusp LIKE '%" + selectNusp + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
+
+                                for linha in linhas:
+                                    print("Nome do Funcionario: ", linha[0])
+                                    print("NUSP do Funcionario: ", linha[1])
+                                    print("ID Aparato: ", linha[2])
+                                    print("Nome Livro: ", linha[3])
+                                    print("Autor: ", linha[4])
+                                    print("Edição: ", linha[5])
+                                    print("Ano de lançamento: ", linha[6], "\n")
 
                             elif(selectNusp == '' and selectNome != ''):
-                                consulta_sql = "select * from Funcionario where Funcionario.nome LIKE '%" + selectNome + "%'"
+                                #consulta_sql = "select * from Funcionario where Funcionario.nome LIKE '%" + selectNome + "%'"
+                                
+                                consulta_sql = loanQuery("Funcionario","Equipamento") + "where Funcionario.nome LIKE '%" + selectNome + "%'"
                                 self.cursor.execute(consulta_sql)
                                 linhas = self.cursor.fetchall()
 
                                 for linha in linhas:
-                                    print("NUSP:", linha[0])
-                                    print("Função:", linha[1])
-                                    print("Nome:", linha[2])
-                                    print("E-mail:", linha[3])
-                                    print("Telefone:", linha[4], "\n")
+                                    print("Nome do Funcionario: ", linha[0])
+                                    print("NUSP do Funcionario: ", linha[1])
+                                    print("ID Aparato: ", linha[2])
+                                    print("Nome Equipamento: ", linha[3])
+                                    print("Tipo Equipamento: ", linha[4])
+                                    print("Modelo Equipamento: ", linha[5], "\n")
+                                
+                                consulta_sql = loanQuery("Funcionario","Livro") + "where Funcionario.nome LIKE '%" + selectNome + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
+
+                                for linha in linhas:
+                                    print("Nome do Funcionario: ", linha[0])
+                                    print("NUSP do Funcionario: ", linha[1])
+                                    print("ID Aparato: ", linha[2])
+                                    print("Nome Livro: ", linha[3])
+                                    print("Autor: ", linha[4])
+                                    print("Edição: ", linha[5])
+                                    print("Ano de lançamento: ", linha[6], "\n")
+
 
                             elif(selectNusp != '' and selectNome != ''):
-                                consulta_sql = "select * from Funcionario where Funcionario.nome LIKE '%" + selectNome + "%'" + "AND Funcionario.nusp LIKE '%" + selectNusp + "%'"
+                                #consulta_sql = "select * from Funcionario where Funcionario.nome LIKE '%" + selectNome + "%'" + "AND Funcionario.nusp LIKE '%" + selectNusp + "%'"
+                                
+                                consulta_sql = loanQuery("Funcionario","Equipamento") + "where Funcionario.nome LIKE '%" + selectNome + "%'" + "AND Funcionario.nusp LIKE '%" + selectNusp + "%'"
                                 self.cursor.execute(consulta_sql)
                                 linhas = self.cursor.fetchall()
 
                                 for linha in linhas:
-                                    print("NUSP:", linha[0])
-                                    print("Função:", linha[1])
-                                    print("Nome:", linha[2])
-                                    print("E-mail:", linha[3])
-                                    print("Telefone:", linha[4], "\n")
+                                    print("Nome do Funcionario: ", linha[0])
+                                    print("NUSP do Funcionario: ", linha[1])
+                                    print("ID Aparato: ", linha[2])
+                                    print("Nome Equipamento: ", linha[3])
+                                    print("Tipo Equipamento: ", linha[4])
+                                    print("Modelo Equipamento: ", linha[5], "\n")
+                                
+                                consulta_sql = loanQuery("Funcionario","Livro") + "where Funcionario.nome LIKE '%" + selectNome + "%'" + "AND Funcionario.nusp LIKE '%" + selectNusp + "%'"
+                                self.cursor.execute(consulta_sql)
+                                linhas = self.cursor.fetchall()
+
+                                for linha in linhas:
+                                    print("Nome do Funcionario: ", linha[0])
+                                    print("NUSP do Funcionario: ", linha[1])
+                                    print("ID Aparato: ", linha[2])
+                                    print("Nome Livro: ", linha[3])
+                                    print("Autor: ", linha[4])
+                                    print("Edição: ", linha[5])
+                                    print("Ano de lançamento: ", linha[6], "\n")
+                                    
                         except Error as e:
                             print("Erro ao acessar tabela MySQL", e)
 
@@ -370,7 +620,7 @@ database = [pd.read_csv(os.path.join(__location__, "alunos.csv")),
             pd.read_csv(os.path.join(__location__, "tipoEquipamento.csv")),
             pd.read_csv(os.path.join(__location__, "Equipamento.csv")),
             pd.read_csv(os.path.join(__location__, "tipoLivro.csv")),
-            #pd.read_csv(os.path.join(__location__, "Laboratorio_has_Aparato.csv")),
+            pd.read_csv(os.path.join(__location__, "Laboratorio_has_Aparato.csv")),
             pd.read_csv(os.path.join(__location__, "Biblioteca_has_Aparato.csv")),
             pd.read_csv(os.path.join(__location__, "Biblioteca.csv")),
             pd.read_csv(os.path.join(__location__, "Aparato.csv"))
